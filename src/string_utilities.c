@@ -1,3 +1,8 @@
+/*
+Tools for string, such a secure printf or reading of strings
+
+*/
+
 #include "../include/kaibash.h"
 
 char *string_from_file(char const *filename){
@@ -38,14 +43,3 @@ void ok_array_free(ok_array *ok_in){
     free(ok_in);
 }
 
-#ifdef test_ok_array
-int main (){
-    char *delimiters = " `~!@#$%^&*()_-+={[]}|\\;:\",<>./?\n";
-    ok_array *o = ok_array_new(strdup("Hello,  reader. This is text."), delimiters);
-    assert(o->length==5);
-    assert(!strcmp(o->elements[1], "reader"));
-    assert(!strcmp(o->elements[4], "text"));
-    ok_array_free(o);
-    printf("OK.\n");
-}
-#endif

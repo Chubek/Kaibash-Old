@@ -1,3 +1,10 @@
+/*
+This code is taken from 21st Century C ad verbatin. The license for the code allows it.
+However please pay homage wherenever possible if you use thewse.
+
+Tools for string and a secure-printf
+*/
+
 #define Sasprintf(write_to,  ...) {          \
     char *tmp_string_for_extend = write_to;  \
     asprintf(&(write_to), __VA_ARGS__);      \
