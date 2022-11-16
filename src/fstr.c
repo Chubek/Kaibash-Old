@@ -1,5 +1,8 @@
 #include "../include/kaibash.h"
 
+/*
+new fstr object, set reference count to 1
+*/
 fstr_s *fstr_new(char const *filename){
     fstr_s *out = malloc(sizeof(fstr_s));
     *out = (fstr_s){.start=0, .refs=malloc(sizeof(int))};
@@ -9,6 +12,21 @@ fstr_s *fstr_new(char const *filename){
     return out;
 }
 
+/*
+new fstr object from buffer, set reference count to 1
+*/
+fstr_s *fstr_new_from_buffer(char const * buffer){
+    fstr_s *out = malloc(sizeof(fstr_s));
+    *out = (fstr_s){.start=0, .refs=malloc(sizeof(int))};
+    out->data = buffer;
+    out->end = out->data ? strlen(out->data): 0;
+    *out->refs = 1;
+    return out;
+}
+
+/*
+Copy the given fstr object, add one to ref counter
+*/
 fstr_s *fstr_copy(fstr_s const *in, size_t start, size_t len){
     fstr_s *out = malloc(sizeof(fstr_s));
     *out=*in;
@@ -19,6 +37,9 @@ fstr_s *fstr_copy(fstr_s const *in, size_t start, size_t len){
     return out;
 }
 
+/*
+Free and decrement ref counter
+*/
 void fstr_free(fstr_s *in){
     (*in->refs)--;
     if (!*in->refs) {
@@ -28,6 +49,9 @@ void fstr_free(fstr_s *in){
     free(in);
 }
 
+/*
+Main function to split the string into a list
+*/
 fstr_list fstr_split (fstr_s const *in, gchar const *start_pattern){
     if (!in->data) return (fstr_list){ };
     fstr_s **out=malloc(sizeof(fstr_s*));
@@ -54,6 +78,9 @@ fstr_list fstr_split (fstr_s const *in, gchar const *start_pattern){
     return (fstr_list){.strings=out, .count=outlen};
 }
 
+/*
+Free the list, free the fstrs inside
+*/
 void fstr_list_free(fstr_list in){
     for (int i=0; i< in.count; i++){
         fstr_free(in.strings[i]);
@@ -61,6 +88,9 @@ void fstr_list_free(fstr_list in){
     free(in.strings);
 }
 
+/*
+Debug
+*/
 void fstr_show(fstr_s const *fstr){
     printf("%.*s", (int)fstr->end-fstr->start, &fstr->data[fstr->start]);
 }

@@ -1,10 +1,20 @@
+/*
+The followingf utility is taken ad-verbatim form the book 21st Century C
+by Ben Klemens. Please give credit where it's due.
+
+This utility aims to split a string based on matching regex
+
+*/
+
 typedef struct {
     char *data;
     size_t start, end;
-    int* refs;
+    int* refs; //it uses this propertty to keep the track of references
 } fstr_s;
 
 fstr_s *fstr_new(char const *filename);
+fstr_s *fstr_new_from_buffer(char const *buffer);
+
 fstr_s *fstr_copy(fstr_s const *in, size_t start, size_t len);
 void fstr_show(fstr_s const *fstr);
 void fstr_free(fstr_s *in);
