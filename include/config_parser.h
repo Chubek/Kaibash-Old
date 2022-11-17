@@ -1,7 +1,7 @@
 typedef struct {
     char cert_hash[5000];
-    char cert_file[2000];
-    char key_file[2000];
+    char cert_file[50000];
+    char key_file[50000];
     char password[2000];
 
 } config_parsed_s;
