@@ -14,7 +14,7 @@ HQUIC Configuration;
 
 void server_send(_In_ HQUIC Stream);
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+extern _IRQL_requires_max_(DISPATCH_LEVEL)
 _Function_class_(QUIC_STREAM_CALLBACK)
 QUIC_STATUS
 QUIC_API
@@ -24,7 +24,7 @@ server_stream_callback(
     _Inout_ QUIC_STREAM_EVENT* Event
 );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+extern _IRQL_requires_max_(DISPATCH_LEVEL)
 _Function_class_(QUIC_CONNECTION_CALLBACK)
 QUIC_STATUS
 QUIC_API
@@ -34,7 +34,7 @@ server_connection_callback(
     _Inout_ QUIC_CONNECTION_EVENT* Event
 );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+extern _IRQL_requires_max_(PASSIVE_LEVEL)
 _Function_class_(QUIC_LISTENER_CALLBACK)
 QUIC_STATUS
 QUIC_API
@@ -54,7 +54,7 @@ typedef struct QUIC_CREDENTIAL_CONFIG_HELPER {
     };
 } QUIC_CREDENTIAL_CONFIG_HELPER;
 
-void
+extern void
 run_server(
     _In_ int argc,
     _In_reads_(argc) _Null_terminated_ char* argv[]

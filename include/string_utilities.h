@@ -11,7 +11,7 @@ Tools for string and a secure-printf
     free(tmp_string_for_extend);             \
 }
 
-char *string_from_file(char const *filename);
+extern char *string_from_file(char const *filename);
 
 typedef struct ok_array {
     char **elements;
@@ -19,6 +19,6 @@ typedef struct ok_array {
     int length;
 } ok_array;
 
-ok_array *ok_array_new(char *instring, char const *delimiters);
+extern ok_array *ok_array_new(char *instring, char const *delimiters);
 
-void ok_array_free(ok_array *ok_in);
+extern void ok_array_free(ok_array *ok_in);

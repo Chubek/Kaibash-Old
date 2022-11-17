@@ -176,6 +176,77 @@ server_listenr_callback(
     return Status;
 }
 
+BOOLEAN
+server_load_configurtion() {
+    QUIC_SETTINGS settings =  {0};
+
+    //set idle timeout
+    settings.SendIdleTimeoutMs = IdleTimeoutMs;
+    settings.IsSet.SendIdleTimeoutMs = TRUE;
+
+    //set resumption level
+    settings.ServerResumptionLevel= QUIC_SERVER_RESUME_AND_ZERORTT;
+    settings.IsSet.ServerResumptionLevel = TRUE;
+
+    //configure to allow server to allow the peer
+    //to open a single bidirectional stream. 
+    //By default it's unidir.
+    settings.PeerBidiStreamCount = 1;
+    settings.IsSet.PeerBidiStreamCount =  TRUE;
+
+    //load config from file and set
+    QUIC_CREDENTIAL_CONFIG_HELPER config;
+    memset(&config, 0, sizeof(config));
+    config.CredConfig.Flags = QUIC_CREDENTIAL_FLAG_NONE;
+
+    //load the configuration struct
+    char *config_path = get_config_path();
+    configp_wrapper_s *config_cont = parse_config(config_path);
+
+    if (strlen(config_cont->configp.cert_hash) != 0) {
+        uint32_t cert_hash_len = decode_hex_buffer(
+            config_cont->configp.cert_hash,
+            sizeof(config.CertHash.ShaHash),
+            config.CertHash.ShaHash
+        );
+
+        if (cert_hash_len != sizeof(config.CertHash.ShaHash)) {
+            return FALSE;
+        }
+
+        config.CredConfig.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_HASH;
+        config.CredConfig.CertificateHash = &config.CertHash;
+    } else {
+        if (strlen(config_cont->configp.password) != 0) {
+            config.CertFileProtected.CertificateFile = (char *)config_cont->configp.cert_file;
+            config.CertFileProtected.PrivateKeyFile = (char *)config_cont->configp.key_file;
+            config.CertFileProtected.PrivateKeyPassword = (char *)config_cont->configp.password;
+            config.CredConfig.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_FILE_PROTECTED;
+            config.CredConfig.CertificateFileProtected = &config.CertFileProtected;
+        } else {
+            config.CertFile.CertificateFile = (char *)config_cont->configp.cert_file;
+            config.CertFile.PrivateKeyFile = (char *)config_cont->configp.key_file;
+            config.CredConfig.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_FILE;
+            config.CredConfig.CertificateFile = &config.CertFie;
+        }
+    }
+
+    //allocate settings object
+    QUIC_STATUS status = QUIC_STATUS_SUCCESS;
+    if (QUIC_FAILED(status = MsQuic->ConfigurationOpen(Registration, &Alpn, 1, &settings, sizeof(settings), NULL, &Configuration))) {
+        Sasprintf(stderr, "Settings load failed: 0x%x\n", status);
+        return FALSE;
+    }
+
+    //allocate cert conf object
+    if (QUIC_FAILED(status = MsQuic->ConfigurationLoadCredential(Configuration, &config.CredConfig))) {
+        Sasprintf(stderr, "Cert config load failed: 0x%x\n", status);
+        return FALSE;
+    }
+
+    return TRUE;  
+}
+
 void
 run_server(
     _In_ int argc,
@@ -190,7 +261,6 @@ run_server(
     QuicAddrSetFamily(&address, QUIC_ADDRESS_FAMILY_UNSPEC);
     QuicAddrSetPut(&address, UdpPort);
 
-    //load the configuration
     
 
 }

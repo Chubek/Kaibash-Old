@@ -24,7 +24,7 @@ void assert_config_label(
         } else if (STRING_EQ(PASSWORD, label)) {
             *label = ConfPassword;
         }
-
+        
         if (IS_SPACE(current_line[0])) {
             current_line++;
         }
@@ -59,7 +59,7 @@ configp_wrapper_s *parse_config(char const *filepath) {
                     current_content,
                     5000
                 );
-                break;
+                continue;
             case ConfCertFile:
                 char *file_contents = string_from_file(current_content);
 
@@ -69,7 +69,7 @@ configp_wrapper_s *parse_config(char const *filepath) {
                     50000
                 );
                 free(file_contents);
-                break;
+                continue;
             case ConfKeyFile:
                 char *file_contents = string_from_file(current_content);
 
@@ -79,14 +79,14 @@ configp_wrapper_s *parse_config(char const *filepath) {
                     50000
                 );
                 free(file_contents);
-                break;
+                continue;
             case ConfPassword:
                 memcpy(
                     configp->configp.password,
                     current_content,
                     5000
                 );
-                break;
+                continue;            
         }
     }
 

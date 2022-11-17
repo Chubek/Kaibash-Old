@@ -6,11 +6,13 @@ typedef struct {
 
 } config_parsed_s;
 
+
 typedef enum {
     ConfCertHash,
     ConfCertFile,
     ConfKeyFile,
     ConfPassword,
+    ConfCertMode,
 } config_labels;
 
 typedef struct {
@@ -20,9 +22,9 @@ typedef struct {
 
 void assert_config_label(config_labels *label, char *current_line, char *current_content);
 
-configp_wrapper_s *parse_config(char const *filepath);
-configp_wrapper_s *copy_config(configp_wrapper_s const *in);
-void free_config(configp_wrapper_s *in);
+extern configp_wrapper_s *parse_config(char const *filepath);
+extern configp_wrapper_s *copy_config(configp_wrapper_s const *in);
+extern void free_config(configp_wrapper_s *in);
 
 #define IS_COLON(c) ((c == ':') ? 1 : 0)
 #define IS_CAPITAL(c) ((c > 64 && c <= 90) ? 1 : 0)
@@ -35,4 +37,4 @@ void free_config(configp_wrapper_s *in);
 #define KEY_FILE    "KEY_FILE"
 #define PASSWORD    "PASSWORD"
 
-char *get_config_path();
+extern char *get_config_path();
