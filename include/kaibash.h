@@ -16,3 +16,4 @@
 #include "string_utilities.h"
 #include "utils.h"
 #include "config_parser.h"
+#include "http_parser.h"

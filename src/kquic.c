@@ -8,7 +8,7 @@ void server_send(_In_ HQUIC Stream) {
     void *send_buffer_raw_ptr = malloc(sizeof(QUIC_BUFFER) + SendBufferLength);
 
     if (!send_buffer_raw_ptr) {
-        Sasprintf(stderr, "SendBuffer allocation failed");
+        fprintf(stderr, "SendBuffer allocation failed");
         MsQuic->StreamShutdown(Stream, QUIC_STREAM_SHUTDOWN_FLAG_ABORT, 0);
 
         return;
@@ -18,12 +18,12 @@ void server_send(_In_ HQUIC Stream) {
     send_buffer_ptr->Buffer = (uint8_t*)send_buffer_raw_ptr + sizeof(QUIC_BUFFER);
     send_buffer_ptr->Length = SendBufferLength;
 
-    Sasprintf(stdout, "[strm][%p] Sending data..\n", Stream);
+    fprintf(stdout, "[strm][%p] Sending data..\n", Stream);
 
     QUIC_STATUS status;
 
     if (QUIC_FAILED(status = MsQuic->StreamSend(Stream, send_buffer_ptr, 1, QUIC_SEND_FLAG_FIN, send_buffer_ptr))) {
-        Sasprintf(stderr, "StreamSend failed 0x%x\n", status);
+        fprintf(stderr, "StreamSend failed 0x%x\n", status);
         free(send_buffer_raw_ptr);
         MsQuic->StreamShutdown(Stream, QUIC_STREAM_SHUTDOWN_FLAG_ABORT, 0);
     }
@@ -49,31 +49,31 @@ server_stream_callback(
             //a previous StreamSend was completed
             //and the contenxt is being returned to the app
             free(Event->SEND_COMPLETE.ClientContext);
-            Sasprintf(stdout, "[strm][%p] Data sent\n", Stream);
+            fprintf(stdout, "[strm][%p] Data sent\n", Stream);
             break;
         case QUIC_STREAM_EVENT_RECEIVE:
             //data was received from the peer
 
             //TODO: Handle data receive
 
-            Sasprintf(stdout, "[strm][%p] Data received\n", Stream);
+            fprintf(stdout, "[strm][%p] Data received\n", Stream);
             break;
         case QUIC_STREAM_EVENT_PEER_SEND_SHUTDOWN:
             //peer shut down gracefully on the other side of the stream
             
-            Sasprintf(stdout, "[strm][%p] Peer shut down\n", Stream);
+            fprintf(stdout, "[strm][%p] Peer shut down\n", Stream);
             server_send(Stream);
             break;
         case QUIC_STREAM_EVENT_PEER_SEND_ABORTED:
             //peer aborted its send direction
             
-            Sasprintf(stdout, "[strm][%p] Peer aborted\n", Stream);
+            fprintf(stdout, "[strm][%p] Peer aborted\n", Stream);
             MsQuic->StreamShutdown(Stream, QUIC_STREAM_SHUTDOWN_FLAG_ABORT, 0);
             break;
         case QUIC_STREAM_EVENT_SHUTDOWN_COMPLETE:
             //both sides shut down. Now MsQuic can college away the stream.
 
-            Sasprintf(stdout, "[strm][%p] All done\n", Stream);
+            fprintf(stdout, "[strm][%p] All done\n", Stream);
             MsQuic->StreamClose(Stream);
             break;
         default:
@@ -102,7 +102,7 @@ server_connection_callback(
     switch (Event->Type) {
         case QUIC_CONNECTION_EVENT_CONNECTED:
             //handshake completed
-            Sasprintf(stdout, "[conn][%p] Connected\n", Connection);
+            fprintf(stdout, "[conn][%p] Connected\n", Connection);
             MsQuic->ConnectionSendResumptionTicket(Connection, QUIC_SEND_RESUMPTION_FLAG_NONE, 0, NULL);
             break;
         case QUIC_CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_TRANSPORT:
@@ -110,31 +110,31 @@ server_connection_callback(
             //the expected way for the connection to shut down with its protocol when idle
 
             if (Event->SHUTDOWN_INITIATED_BY_TRANSPORT.Status == QUIC_STATUS_CONNECTION_IDLE) {
-                Sasprintf(stdout, "[conn][%p] Shutdown succesfully on idle.\n", Connection);
+                fprintf(stdout, "[conn][%p] Shutdown succesfully on idle.\n", Connection);
             } else {
-                Sasprintf(stdout, "[conn][%p] Shutdown by transport.\n", Connection);
+                fprintf(stdout, "[conn][%p] Shutdown by transport.\n", Connection);
             }
 
             break;
         case QUIC_CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_PEER:
-                Sasprintf("[conn][%p] Shut down by peer, 0x%llu\n", Connection, (unsigned long long)Event->SHUTDOWN_INITIATED_BY_PEER.ErrorCode);
+                fprintf("[conn][%p] Shut down by peer, 0x%llu\n", Connection, (unsigned long long)Event->SHUTDOWN_INITIATED_BY_PEER.ErrorCode);
                 break;
         case QUIC_CONNECTION_EVENT_SHUTDOWN_COMPLETE:
             //The connection has been servied its task and completed.
             //ready for cleanup
 
-            Sasprintf(stdout, "[conn][%p] Shutdown succesfully on idle.\n", Connection);
+            fprintf(stdout, "[conn][%p] Shutdown succesfully on idle.\n", Connection);
             MsQuic->ConnectionClose(Connection);
             break;
         case QUIC_CONNECTION_EVENT_PEER_STREAM_STARTED:
             //The peer has started/create a new stream. The app must set the callback boefore returning.
 
-            Sasprintf(stdout, "[strm][%p] Peer started\n.", Event->PEER_STREAM_STARTED.Stream);
+            fprintf(stdout, "[strm][%p] Peer started\n.", Event->PEER_STREAM_STARTED.Stream);
             MsQuic->SetCallbackHandler(Event->PEER_STREAM_STARTED.Stream, (void*)server_stream_callback, NULL);
             break;
         case QUIC_CONNECTION_EVENT_RESUMED:
             //the connection succeeded doing a TLS resumption of the previous session.
-            Sasprintf(stdout, "[strm][%p] Connection resumed\n.", Connection);
+            fprintf(stdout, "[strm][%p] Connection resumed\n.", Connection);
             break;
         default:
             break;
@@ -227,20 +227,20 @@ server_load_configurtion() {
             config.CertFile.CertificateFile = (char *)config_cont->configp.cert_file;
             config.CertFile.PrivateKeyFile = (char *)config_cont->configp.key_file;
             config.CredConfig.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_FILE;
-            config.CredConfig.CertificateFile = &config.CertFie;
+            config.CredConfig.CertificateFile = &config.CertFile;
         }
     }
 
     //allocate settings object
     QUIC_STATUS status = QUIC_STATUS_SUCCESS;
     if (QUIC_FAILED(status = MsQuic->ConfigurationOpen(Registration, &Alpn, 1, &settings, sizeof(settings), NULL, &Configuration))) {
-        Sasprintf(stderr, "Settings load failed: 0x%x\n", status);
+        fprintf(stderr, "Settings load failed: 0x%x\n", status);
         return FALSE;
     }
 
     //allocate cert conf object
     if (QUIC_FAILED(status = MsQuic->ConfigurationLoadCredential(Configuration, &config.CredConfig))) {
-        Sasprintf(stderr, "Cert config load failed: 0x%x\n", status);
+        fprintf(stderr, "Cert config load failed: 0x%x\n", status);
         return FALSE;
     }
 
@@ -261,6 +261,25 @@ run_server(
     QuicAddrSetFamily(&address, QUIC_ADDRESS_FAMILY_UNSPEC);
     QuicAddrSetPut(&address, UdpPort);
 
-    
+    server_load_configurtion();
+
+    //allocate a new listener object
+    if (QUIC_FAILED(status = MsQuic->ListenerOpen(Registration, server_listenr_callback, NULL, &listener))) {
+        fprintf(stderr, "ListenerOpen failed: 0x%x\n", status);
+        goto Error;
+    }
+
+    //start listening for incoming connections
+    if (QUIC_FAILED(status = MsQuic->ListenerStart(listener, &Alpn, 1, &address))) {
+        fprintf(stderr, "ListenerStart failed: 0x%x\n", status);
+        goto Error;
+    }
+
+    fprintf(stdout, "Server is running, press Enter to exit\n\n");
+
+    Error:
+    if (listener != NULL) {
+        MsQuic->ListenerClose(listener);
+    }
 
 }
