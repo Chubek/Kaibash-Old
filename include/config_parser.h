@@ -34,3 +34,5 @@ void free_config(configp_wrapper_s *in);
 #define CERT_FILE   "CERT_FILE"
 #define KEY_FILE    "KEY_FILE"
 #define PASSWORD    "PASSWORD"
+
+char *get_config_path();

@@ -108,3 +108,17 @@ void free_config(configp_wrapper_s *in) {
 
     free(in);
 }
+
+char *get_config_path() {
+    struct passwd *pw = getpwuid(getuid());
+    char *hdir = pw->pw_dir;
+    char *confpath;
+    Sasprintf(confpath, "%s/.kaibash/config", hdir);
+
+    if (access(confpath, F_OK) == 0) {
+        fprintf(stderr, "Error reading file %s: Does not exist", confpath);
+        exit(1);
+    }
+
+    return confpath;
+}

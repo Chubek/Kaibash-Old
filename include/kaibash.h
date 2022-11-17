@@ -4,6 +4,9 @@
 #include <glib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #define _GNU_SOURCE //asks stdio.h to include asprintf
 #include <stdio.h>
