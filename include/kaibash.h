@@ -12,7 +12,6 @@
 #include <stdio.h>
 
 #include "kquic.h"
-#include "fstr.h"
 #include "string_utilities.h"
 #include "utils.h"
 #include "config_parser.h"

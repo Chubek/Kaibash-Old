@@ -37,14 +37,13 @@ void assert_config_label(
 
 configp_wrapper_s *parse_config(char const *filepath) {
     config_labels label;
-    fstr_s *fs = fstr_new(filepath);
-    fstr_list splt = fstr_split(fs, "\\n");
+    char *conf_content = string_from_file(filepath);
+    ok_array *splt = ok_array_new(conf_content, "\n");
     configp_wrapper_s *configp = malloc(sizeof(configp_wrapper_s));
     char current_content[5000];
 
-    for (int i = 0; i < splt.count; i++) {
-        fstr_s *current_line_s = splt.strings[i];
-        char *current_line = current_line_s->data;
+    for (int i = 0; i < splt->length; i++) {
+        char *current_line = splt->elements[i];
 
         assert_config_label(
             &label,
@@ -91,6 +90,8 @@ configp_wrapper_s *parse_config(char const *filepath) {
     }
 
     *(configp->ref_counter)++;
+    ok_array_free(splt);
+    free(conf_content);
 
     return configp;
 }

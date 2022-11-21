@@ -32,35 +32,57 @@ http_header_s *parse_single_header(char const *line) {
     return header;
 }
 
-http_frame_s *parse_http_frame(char const *text) {
-    fstr_s *fstr = fstr_new_from_buffer(text);
-    fstr_list split_til_body = fstr_split(fstr, "\n\r\n\r");
+http_frame_s *parse_http_frame(char *text) {
+    ok_array *split_til_body = ok_array_new(text, "\n\r\n\r");
 
-    if (split_til_body.count > 2) {
-        fprintf(stderr, "Error: more than 2 sections separated with \n\r\n\r, `%d`", split_til_body.count);
+    if (split_til_body->length > 2) {
+        fprintf(stderr, "Error: more than 2 sections separated with \n\r\n\r, `%d`", split_til_body->length);
         exit(1);
     }
     
-    char *header_section = split_til_body.strings[0]->data;
-    char *body_section = split_til_body.strings[1]->data;
+    char *header_section = split_til_body->elements[0];
+    char *body_section = split_til_body->elements[1];
 
-    fstr_s *header_fstr = fstr_new_from_buffer(header_section);
-    fstr_list header_lines = fstr_split(header_fstr, "\n");
+    ok_array *header_lines = ok_array_new(header_section, "\n\r");
 
-    http_header_s **headers = (http_header_s **)malloc(sizeof(http_header_s) * header_lines.count + sizeof(headers));
+    http_header_s **headers = (http_header_s **)malloc(sizeof(http_header_s) * header_lines->length);
 
-    for (int i = 0; i < header_lines.count; i++) {
-        char *line = header_lines.strings[i]->data;
+    for (int i = 0; i < header_lines->length; i++) {
+        char *line = header_lines->elements[i];
         
         headers[i] = parse_single_header(line);
     }
 
-    http_frame_s *frame = (http_frame_s *)malloc(sizeof(http_frame_s) + sizeof(body_section));
+    http_frame_s *frame = (http_frame_s *)malloc(sizeof(http_frame_s) + sizeof(body_section) + sizeof(headers));
 
     strncat(frame->body, body_section, strlen(body_section));
-    memset(frame->headers, headers, sizeof(headers));
+    memcpy(frame->headers, headers, sizeof(headers));
 
     *(frame->ref_counter++);
 
+    ok_array_free(split_til_body);
+    ok_array_free(header_lines);
+    free(headers);
+    
     return frame;
+}
+
+http_frame_s *copy_http_frame(http_frame_s *in) {
+    http_frame_s *new_copy = (http_frame_s *)malloc(sizeof(in));
+    *new_copy = *in;
+
+    *(new_copy->ref_counter++);
+
+    return new_copy;
+}
+
+void free_http_frame(http_frame_s *in) {
+    *(in->ref_counter--);
+    
+    if (*in->ref_counter == 0) {
+        free(in->body);
+        free(in->headers);
+    }
+
+    free(in);    
 }
